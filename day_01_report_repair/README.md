@@ -1,21 +1,30 @@
-# Day01ReportRepair
+# --- Day 1: Report Repair ---
 
-**TODO: Add description**
+After saving Christmas five years in a row, you've decided to take a vacation at a nice resort on a tropical island. Surely, Christmas will go on without you.
 
-## Installation
+The tropical island has its own currency and is entirely cash-only. The gold coins used there have a little picture of a starfish; the locals just call them stars. None of the currency exchanges seem to have heard of them, but somehow, you'll need to find fifty of these coins by the time you arrive so you can pay the deposit on your room.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `day_01_report_repair` to your list of dependencies in `mix.exs`:
+To save your vacation, you need to get all fifty stars by December 25th.
 
-```elixir
-def deps do
-  [
-    {:day_01_report_repair, "~> 0.1.0"}
-  ]
-end
-```
+Collect stars by solving puzzles. Two puzzles will be made available on each day in the Advent calendar; the second puzzle is unlocked when you complete the first. Each puzzle grants one star. Good luck!
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/day_01_report_repair](https://hexdocs.pm/day_01_report_repair).
+Before you leave, the Elves in accounting just need you to fix your expense report (your puzzle input); apparently, something isn't quite adding up.
 
+Specifically, they need you to find the two entries that sum to 2020 and then multiply those two numbers together.
+
+For example, suppose your expense report contained the following:
+
+1721
+979
+366
+299
+675
+1456
+
+In this list, the two entries that sum to 2020 are 1721 and 299. Multiplying them together produces 1721 \* 299 = 514579, so the correct answer is 514579.
+
+Of course, your expense report is much larger. Find the two entries that sum to 2020; what do you get if you multiply them together?
+
+Your puzzle answer was 651651.
+
+The first half of this puzzle is complete! It provides one gold star: \*
