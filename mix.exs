@@ -1,9 +1,9 @@
-defmodule Day02PasswordPhilosophy.MixProject do
+defmodule AdventOfCode.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :day_02_password_philosophy,
+      app: :advent_of_code,
       version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,

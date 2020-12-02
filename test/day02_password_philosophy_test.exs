@@ -1,4 +1,4 @@
 defmodule Day02PasswordPhilosophyTest do
   use ExUnit.Case
-  doctest Day02PasswordPhilosophy
+  doctest AdventOfCode.Day02PasswordPhilosophy
 end

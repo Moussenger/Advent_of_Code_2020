@@ -1,4 +1,4 @@
 defmodule Day01ReportRepairTest do
   use ExUnit.Case
-  doctest Day01ReportRepair
+  doctest AdventOfCode.Day01ReportRepair
 end

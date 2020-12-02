@@ -1,11 +1,11 @@
-defmodule Day01ReportRepair do
+defmodule AdventOfCode.Day01ReportRepair do
   @doc """
 
   Examples:
-    iex> Day01ReportRepair.get_mult_with_sum([1721, 979, 366, 299, 675, 1456], 2020, 2)
+    iex> AdventOfCode.Day01ReportRepair.get_mult_with_sum([1721, 979, 366, 299, 675, 1456], 2020, 2)
     [{2020, 514579}]
 
-    iex> Day01ReportRepair.get_mult_with_sum([1721, 979, 366, 299, 675, 1456], 2020, 3)
+    iex> AdventOfCode.Day01ReportRepair.get_mult_with_sum([1721, 979, 366, 299, 675, 1456], 2020, 3)
     [{2020, 241861950}]
   """
   @spec get_mult_with_sum([integer], integer, integer) :: [{integer, integer, integer, integer}]

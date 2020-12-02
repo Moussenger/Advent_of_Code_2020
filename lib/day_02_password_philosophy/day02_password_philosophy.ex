@@ -1,12 +1,12 @@
-defmodule Day02PasswordPhilosophy do
+defmodule AdventOfCode.Day02PasswordPhilosophy do
   @moduledoc """
   ## Examples
 
-      iex> import Day02PasswordPhilosophy
+      iex> import AdventOfCode.Day02PasswordPhilosophy
       iex> validate_passwords(["1-3 a: abcde","1-3 b: cdefg", "2-9 c: ccccccccc"], &is_password_valid_by_count?/1)
       2
 
-      iex> import Day02PasswordPhilosophy
+      iex> import AdventOfCode.Day02PasswordPhilosophy
       iex> validate_passwords(["1-3 a: abcde","1-3 b: cdefg", "2-9 c: ccccccccc"], &is_password_valid_by_position?/1)
       1
   """
@@ -37,7 +37,8 @@ defmodule Day02PasswordPhilosophy do
   defp parse_password(password) do
     {range, char, password} = password |> String.split() |> List.to_tuple()
 
-    {range_min, range_max} = String.split(range, "-") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
+    {range_min, range_max} =
+      String.split(range, "-") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
 
     [char | _] = char |> String.graphemes()
 
