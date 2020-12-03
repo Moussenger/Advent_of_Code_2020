@@ -1,7 +1,21 @@
 defmodule AdventOfCode.Day03TobogganTrajectory do
   @tree "#"
 
-  @moduledoc """
+  @doc """
+  ## Examples
+      iex> import AdventOfCode.Day03TobogganTrajectory
+      iex> slope = "..##....... #...#...#.. .#....#..#. ..#.#...#.# .#...##..#. ..#.##..... .#.#.#....# .#........# #.##...#... #...##....# .#..#...#.#"
+      iex> get_trees_from_slope_with_moves(slope, [{1, 1}, {3, 1}, {5, 1}, {7, 1}, {1, 2}])
+      336
+
+  """
+  def get_trees_from_slope_with_moves(slope, moves) do
+    moves
+    |> Enum.map(fn {right, down} -> get_trees_from_slope(slope, right, down) end)
+    |> Enum.reduce(&(&1 * &2))
+  end
+
+  @doc """
   ## Examples
 
       iex> import AdventOfCode.Day03TobogganTrajectory
