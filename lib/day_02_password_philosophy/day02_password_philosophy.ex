@@ -37,8 +37,7 @@ defmodule AdventOfCode.Day02PasswordPhilosophy do
   defp parse_password(password) do
     {range, char, password} = password |> String.split() |> List.to_tuple()
 
-    {range_min, range_max} =
-      String.split(range, "-") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
+    {range_min, range_max} = String.split(range, "-") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
 
     [char | _] = char |> String.graphemes()
 
