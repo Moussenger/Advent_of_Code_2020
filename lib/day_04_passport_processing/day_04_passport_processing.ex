@@ -58,7 +58,11 @@ defmodule AdventOfCode.Day04PassportProcessing do
   end
 
   defp is_byr_valid?(%{:passport => %{"byr" => byr}, :valid => valid} = changeset) do
-    %{changeset | valid: valid and validate_integer_digits(byr, 4, 1920, 2002)}
+    with true <- validate_integer_digits(byr, 4, 1920, 2002) do
+      %{changeset | valid: valid}
+    else
+      _ -> %{changeset | valid: false}
+    end
   end
 
   defp is_iyr_valid?(%{:passport => %{"iyr" => iyr}, :valid => valid} = changeset) do
