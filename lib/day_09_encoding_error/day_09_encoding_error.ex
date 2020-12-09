@@ -8,10 +8,28 @@ defmodule AdventOfCode.Day09EncodingError do
   """
   def find_xmas_weakness(codes, preamble_size) do
     codes
-    |> String.split()
-    |> Stream.map(&String.to_integer/1)
-    |> Enum.to_list()
+    |> parse_codes()
     |> resolve_xmas_sequence(preamble_size)
+  end
+
+  @doc ~S"""
+  ## Examples
+    iex> import AdventOfCode.Day09EncodingError
+    iex> data = "35 20 15 25 47 40 62 55 65 95 102 117 150 182 127 219 299 277 309 576"
+    iex> data |> break_xmas_weakness(127)
+    62
+  """
+  def break_xmas_weakness(codes, weakness_value) do
+    case codes |> parse_codes |> get_weakness_sum(weakness_value, 0, 1) do
+      {:break, sum} -> sum
+      error -> error
+    end
+  end
+
+  defp parse_codes(codes) do
+    codes
+    |> String.split()
+    |> Enum.map(&String.to_integer/1)
   end
 
   defp resolve_xmas_sequence(codes, preamble_size) when length(codes) < preamble_size, do: :valid_protocol
@@ -36,5 +54,24 @@ defmodule AdventOfCode.Day09EncodingError do
           do: {v1, v2}
 
     length(valid_combinations) > 0
+  end
+
+  defp get_weakness_sum(codes, _weakness, _ini_pos, end_pos) when end_pos > length(codes), do: {:error, :no_weakness}
+
+  defp get_weakness_sum(codes, weakness_value, ini_pos, end_pos) do
+    range = Enum.slice(codes, ini_pos..end_pos)
+    sum = range |> Enum.sum()
+
+    cond do
+      sum == weakness_value -> {:break, range |> smallest_and_largest |> Tuple.to_list() |> Enum.sum()}
+      sum > weakness_value -> get_weakness_sum(codes, weakness_value, ini_pos + 1, ini_pos + 2)
+      true -> get_weakness_sum(codes, weakness_value, ini_pos, end_pos + 1)
+    end
+  end
+
+  defp smallest_and_largest(codes) do
+    codes = Enum.sort(codes)
+
+    {Enum.at(codes, 0), Enum.at(codes, length(codes) - 1)}
   end
 end
