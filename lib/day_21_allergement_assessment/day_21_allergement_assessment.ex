@@ -5,25 +5,55 @@ defmodule AdventOfCode.Day21AllergementAssessment do
   def count_non_allergens(data) do
     input = parse_input(data)
 
-    ingredients_count = input
-    |> Enum.map(&(Enum.at(&1, 1)))
-    |> List.flatten()
-    |> Enum.reduce(%{}, &(Map.update(&2, &1, 1, (fn value -> value+1 end))))
+    input
+    |> count_ingredients()
+    |> Map.drop(get_ingredients_with_allergens(input))
+    |> Map.values()
+    |> Enum.sum()
+  end
 
-    ingredients_with_allergens = input
-    |> associate_input_allergens([])
-    |> List.flatten()
-    |> associate_allergens(%{})
+  def get_ingredients_sorted_by_allergen(data) do
+    input = parse_input(data)
+
+    get_ingredients_associated_with_allergens(input)
+    |> Map.to_list()
+    |> Enum.map( fn {allergen, ingredients} -> {allergen, MapSet.to_list(ingredients)} end)
+    |> pair_ingredients_with_allergens([])
+    |> Enum.sort_by(fn {allergen, _ingredient} -> allergen end)
+    |> Enum.map(fn {_, ingredient} -> ingredient end)
+    |> Enum.join(",")
+  end
+
+  defp pair_ingredients_with_allergens([], paired), do: paired
+  defp pair_ingredients_with_allergens(allergens, paired) do
+    case Enum.find(allergens, fn {_allegen, ingredients} -> length(ingredients) == 1 end) do
+      nil -> raise 'Allergens can not be paired'
+      allergen -> pair_ingredients_with_allergen(allergen, allergens, paired)
+    end
+  end
+
+  defp pair_ingredients_with_allergen({allergen, [ingredient|_]} = pair, allergens, paired) do
+    allergens = allergens
+    |> List.delete(pair)
+    |> Enum.map(fn {allergen, ingredients} ->{allergen,  List.delete(ingredients, ingredient)} end)
+
+    pair_ingredients_with_allergens(allergens, [{allergen, ingredient} | paired])
+  end
+
+  defp get_ingredients_with_allergens(input) do
+    input
+    |> get_ingredients_associated_with_allergens()
     |> Map.values()
     |> Enum.map(&MapSet.to_list/1)
     |> List.flatten()
     |> Enum.uniq()
+  end
 
-    ingredients_count
-    |> Map.drop(ingredients_with_allergens)
-    |> Map.values()
-    |> Enum.sum()
-
+  defp get_ingredients_associated_with_allergens(input) do
+    input
+    |> associate_input_allergens([])
+    |> List.flatten()
+    |> associate_allergens(%{})
   end
 
   defp associate_allergens([], association), do: association
@@ -41,10 +71,16 @@ defmodule AdventOfCode.Day21AllergementAssessment do
     associate_input_ingredientes_with_allergen(allergens, ingredients, [])
   end
 
-
   defp associate_input_ingredientes_with_allergen([], _ingredients, associated), do: associated
   defp associate_input_ingredientes_with_allergen([allergen | allergens], ingredients, associated) do
       associate_input_ingredientes_with_allergen(allergens, ingredients, [{allergen, ingredients} | associated])
+  end
+
+  defp count_ingredients(input) do
+    input
+    |> Enum.map(&(Enum.at(&1, 1)))
+    |> List.flatten()
+    |> Enum.reduce(%{}, &(Map.update(&2, &1, 1, (fn value -> value+1 end))))
   end
 
   defp parse_input(input) do
