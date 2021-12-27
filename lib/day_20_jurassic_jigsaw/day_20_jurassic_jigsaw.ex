@@ -10,6 +10,87 @@ defmodule AdventOfCode.Day20JurassicJigsaw do
     |> get_corners()
   end
 
+  def detect_monsters(data) do
+
+    data
+    |> String.split("\n\n")
+    |> Enum.map(&parse_piece/1)
+    |> build_jigsaw()
+    |> sort_jigsaw()
+    |> Enum.map(fn row -> Enum.map(row, fn {_id, piece} -> remove_borders(piece.tile.tile) end) end)
+    |> Enum.map(fn row -> row |> Enum.zip |> Enum.map(&Tuple.to_list/1) |> Enum.map(&Enum.join/1) end)
+    |> List.flatten()
+    |> Enum.map(&String.graphemes/1)
+    |> match_monster_in_jigsaw()
+  end
+
+  defp match_monster_in_jigsaw(jigsaw) do
+    size = Enum.count(jigsaw)
+    points = jigsaw |> List.flatten() |> Enum.filter(&(&1 == "#")) |> Enum.count()
+    monster = [
+      "                  # ",
+      "#    ##    ##    ###",
+      " #  #  #  #  #  #   "
+    ] |> Enum.map(&String.graphemes/1)
+
+    monster_points = monster |> List.flatten() |> Enum.filter(&(&1 == "#")) |> Enum.count()
+
+    width = monster |> Enum.at(0) |> Enum.count()
+    height = monster |> Enum.count()
+
+    monster = monster |> List.flatten()
+
+    orientations = jigsaw_orientations(jigsaw)
+    monsters_count = match_monster_in_jigsaw_for_orientation(orientations, monster, width, height, size, 0)
+
+    points - monster_points * monsters_count
+  end
+
+  defp jigsaw_orientations(jigsaw) do
+    jigsaw
+    |> resolve_rotations()
+    |> jigsaw_flippings([])
+  end
+
+  defp jigsaw_flippings([], orientations), do: orientations
+  defp jigsaw_flippings([rotation | rotations], orientations) do
+    flippings = resolve_flippings(rotation)
+
+    jigsaw_flippings(rotations, orientations ++ flippings)
+  end
+
+  defp match_monster_in_jigsaw_for_orientation([], _monster, _width, _height, _size, ocurrences), do: ocurrences
+
+  defp match_monster_in_jigsaw_for_orientation([jigsaw | orientations], monster, width, height, size, 0) do
+    new_ocurrences = match_monster_in_jigsaw(jigsaw, monster, 0, 0, width, height, size, 0)
+    match_monster_in_jigsaw_for_orientation(orientations, monster, width, height, size, new_ocurrences)
+  end
+
+  defp match_monster_in_jigsaw_for_orientation(_, _monster, _width, _height, _size, ocurrences), do: ocurrences
+
+  defp match_monster_in_jigsaw(_jigsaw, _monster, row, _column, _width, height, size, ocurrences) when row + height >= size, do: ocurrences
+  defp match_monster_in_jigsaw(jigsaw, monster, row, column, width, height, size, ocurrences) when column + width >= size do
+    match_monster_in_jigsaw(jigsaw, monster, row+1, 0, width, height, size, ocurrences)
+  end
+  defp match_monster_in_jigsaw(jigsaw, monster, row, column, width, height, size, ocurrences) do
+    found = match_monster_in_window(jigsaw, monster, row, column, width, height)
+
+    match_monster_in_jigsaw(jigsaw, monster, row, column+1, width, height, size, ocurrences + found)
+  end
+
+  defp match_monster_in_window(jigsaw, monster, row, column, width, height) do
+    jigsaw
+    |> Enum.slice(row, height)
+    |> Enum.map(&(Enum.slice(&1, column, width)))
+    |> List.flatten()
+    |> match_monster(monster)
+  end
+
+  defp match_monster([], []), do: 1
+  defp match_monster(["#" | jigsaw_tokens], ["#" | monster_tokens]), do: match_monster(jigsaw_tokens, monster_tokens)
+  defp match_monster([_ | _jigsaw_tokens], ["#" | _monster_tokens]), do: 0
+  defp match_monster([_ | jigsaw_tokens], [_ | monster_tokens]), do: match_monster(jigsaw_tokens, monster_tokens)
+
   defp get_corners(jigsaw) do
     jigsaw
     |> Map.values()
@@ -17,6 +98,49 @@ defmodule AdventOfCode.Day20JurassicJigsaw do
     |> Enum.map(&(Map.get(&1, :tile)))
     |> Enum.map(&(Map.get(&1, :id)))
     |> Enum.reduce(&(&1*&2))
+  end
+
+  defp remove_borders(piece) do
+    piece
+    |> List.delete_at(0)
+    |> Enum.reverse()
+    |> List.delete_at(0)
+    |> Enum.reverse()
+    |> Enum.map(fn line -> line |> String.graphemes() |> List.delete_at(0) |> Enum.reverse() |> List.delete_at(0) |> Enum.reverse() |> Enum.join() end)
+  end
+
+  defp sort_jigsaw(jigsaw) do
+    sort_jigsaw(jigsaw, jigsaw_top_left(jigsaw), [])
+  end
+
+  defp sort_jigsaw(_jigsaw, nil, rows), do: Enum.reverse(rows)
+  defp sort_jigsaw(jigsaw, {_id, piece} = init_piece, rows) do
+    bottom = Map.get(piece, :bottom, %{})
+    bottom_piece = Map.get(jigsaw, Map.get(bottom, :id))
+    bottom_piece = case bottom_piece do
+      nil -> nil
+      _ ->
+        {bottom_piece.tile.id, bottom_piece}
+    end
+    sort_jigsaw(jigsaw, bottom_piece, [build_row(jigsaw, init_piece, [init_piece]) | rows])
+  end
+
+  defp build_row(jigsaw, {_id, previous}, row) do
+    right = Map.get(previous, :right, %{})
+    next_piece = Map.get(jigsaw, Map.get(right, :id))
+
+    case next_piece do
+      nil -> Enum.reverse(row)
+      _ ->
+        next_piece = {right.id, next_piece}
+        build_row(jigsaw, next_piece, [next_piece | row])
+    end
+  end
+
+  defp jigsaw_top_left(jigsaw) do
+    jigsaw
+    |> Map.to_list()
+    |> Enum.find(fn {_, piece} -> Map.get(piece, :top) == nil and Map.get(piece, :left) == nil end)
   end
 
   defp build_jigsaw([first | pieces]) do
