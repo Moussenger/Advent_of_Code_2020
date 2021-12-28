@@ -3,58 +3,76 @@ defmodule AdventOfCode.Day23CrabCups do
   # import AdventOfCode.Day23CrabCups
   # file = "lib/day_23_crab_cups/input.txt" |> File.read!()
   def get_cups_from_1(data, moves) do
-    data
+    cups = data
     |> String.graphemes()
     |> Enum.map(&String.to_integer/1)
-    |> move(0, moves)
-    |> rotate_until(8, 1)
+    |> generate_map()
+    |> (fn {cups, first} -> move(cups, first, 9, moves) end).()
+
+    cups
+    |> list_from_1(Map.get(cups, 1), [1])
     |> List.delete(1)
     |> Enum.join()
   end
 
-  defp move(cups, _position, 0), do: cups
-  defp move(cups, position, moves) do
-    size = length(cups)
-    selected = Enum.at(cups, position)
-    init_slice_position = rem(position + 1, size)
-    {cups, sliced, first} = slice(cups, init_slice_position, 3, (if init_slice_position == 0, do: 3, else: 0), [])
-    next_position = rem(position+1, size)
-    next_selected = Enum.at(cups, rem(position + 1 - first, length(cups)))
-    destination = destination(cups, selected - 1)
-    cups = insert_slice(cups, destination, sliced)
-    move(rotate_until(cups, next_position, next_selected), rem(position + 1, size), moves- 1)
+  def get_cups_from_1_until_1_million(data, moves) do
+    cups = data
+    |> String.graphemes()
+    |> Enum.map(&String.to_integer/1)
+    |> Enum.concat(10..1_000_000 |> Enum.to_list())
+    |> generate_map()
+    |> (fn {cups, first} -> move(cups, first, 1_000_000, moves) end).()
+
+    cups
+    |> list_from_1(Map.get(cups, 1), [1])
+    |> List.delete(1)
+    |> Enum.take(2)
+    |> Enum.reduce(1, fn cup, result -> cup * result end)
   end
 
-  defp rotate_until([cup | next_cups] = cups, index, value) do
-    case Enum.at(cups, index) do
-      ^value -> cups
-      _ -> rotate_until(next_cups ++ [cup], index, value)
-    end
+  defp generate_map(cups) do
+    first = Enum.at(cups, 0)
+
+    cups = (cups ++ [first])
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.map(&List.to_tuple/1)
+    |> Enum.into(%{})
+
+    {cups, first}
   end
 
-  defp insert_slice(cups, _position, []), do: cups
-  defp insert_slice(cups, position, [slice | sliced]) do
-    cups = List.insert_at(cups, position, slice)
-    insert_slice(cups, rem(position + 1, length(cups)+1), sliced)
+  defp list_from_1(_cups, 1, list), do: Enum.reverse(list)
+  defp list_from_1(cups, next, list) do
+    list_from_1(cups, Map.get(cups, next),  [next | list])
   end
 
-  defp destination(cups, 0), do: destination(cups, 9)
-  defp destination(cups, selected) do
-    case Enum.find_index(cups, &(&1 == selected)) do
-      nil -> destination(cups, selected - 1)
-      index -> rem(index + 1, length(cups) + 1)
-    end
+  defp move(cups, _position, _max, 0), do: cups
+  defp move(cups, position, max, moves) do
+    first = Map.get(cups, position)
+    second = Map.get(cups, first)
+    third = Map.get(cups, second)
+
+    next_position = Map.get(cups, third)
+    cups = Map.drop(cups, [first, second, third])
+    cups = Map.put(cups, position, next_position)
+
+    position_to_insert = get_position_to_insert(cups, position - 1, max)
+    old_pointer = Map.get(cups, position_to_insert)
+
+    cups = Map.put(cups, position_to_insert, first)
+    cups = Map.put(cups, first, second)
+    cups = Map.put(cups, second, third)
+    cups = Map.put(cups, third, old_pointer)
+
+    move(cups, next_position, max, moves - 1)
   end
 
-  defp slice(cups, _position, 0, first, sliced), do: {cups, Enum.reverse(sliced), first}
-  defp slice(cups, position, count, first, sliced) do
-    cup = Enum.at(cups, position)
-    cups = List.delete(cups, cup)
-    size = length(cups)
 
-    case position == size do
-      true -> slice(cups, 0, count - 1, count-1, [cup | sliced])
-      false -> slice(cups, position, count - 1, first, [cup | sliced])
+  defp get_position_to_insert(cups, 0, max), do: get_position_to_insert(cups, max, max)
+  defp get_position_to_insert(cups, position, max) do
+    case Map.get(cups, position) do
+      nil -> get_position_to_insert(cups, position - 1, max)
+      _ -> position
     end
   end
 end
